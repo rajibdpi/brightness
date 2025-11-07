@@ -37,6 +37,32 @@ class _BrightnessHomeState extends State<BrightnessHome> {
     _detectDisplays();
   }
 
+  Future<void> _detectMacDisplays() async {
+    setState(() => isLoading = true);
+    try {
+      final result = await Process.run('ddcctl', []);
+      var output = result.stdout.toString();
+      final lines = output.split('\n');
+      final found = <int>[];
+
+      for (final line in lines) {
+        if (line.contains('D:') && line.contains('I:')) {
+          final numStr = line.split('D:')[1].split(' ')[0];
+          if (numStr.isNotEmpty) {
+            found.add(int.parse(numStr));
+          }
+        }
+      }
+      _updateDisplays(found, 'No monitors detected via ddcctl.');
+    } catch (e) {
+      _handleError(
+        'Error detecting displays: $e. Make sure ddcctl is installed (`brew install ddcctl`).',
+      );
+    } finally {
+      setState(() => isLoading = false);
+    }
+  }
+
   /// Detect all connected monitors using `ddcutil detect`
   Future<void> _detectDisplays() async {
     setState(() => isLoading = true);
@@ -55,42 +81,72 @@ class _BrightnessHomeState extends State<BrightnessHome> {
         }
       }
 
-      if (found.isNotEmpty) {
-        setState(() {
-          displays = found;
-          for (var d in displays) {
-            brightness[d] = 0.5; // default
-          }
-        });
-      } else {
-        setState(() {
-          output = 'No monitors detected via ddcutil.';
-        });
-      }
+      _updateDisplays(found, 'No monitors detected via ddcutil.');
     } catch (e) {
-      setState(() {
-        output = 'Error detecting displays: $e';
-      });
+      _handleError('Error detecting displays: $e');
     } finally {
       setState(() => isLoading = false);
     }
   }
 
+  void _updateDisplays(List<int> found, String notFoundMessage) {
+    if (found.isNotEmpty) {
+      setState(() {
+        displays = found;
+        for (var d in displays) {
+          brightness[d] = 0.5; // default
+        }
+        output = '';
+      });
+    } else {
+      setState(() {
+        displays = [];
+        output = notFoundMessage;
+      });
+    }
+  }
+
+  void _handleError(String errorMessage) {
+    setState(() {
+      displays = [];
+      output = errorMessage;
+    });
+  }
+
   /// Set brightness for a specific display
   Future<void> _setBrightness(int display, double value) async {
     final int target = (value * 100).toInt();
-    setState(() {
-      isLoading = true;
-      brightness[display] = value;
-    });
+    setState(() => brightness[display] = value);
 
-    try {
-      final result = await Process.run('/usr/bin/ddcutil', [
+    if (Platform.isMacOS) {
+      await _runProcess('ddcctl', ['-d', '$display', 'b', '$target'], display);
+    } else if (Platform.isLinux) {
+      await _runProcess('/usr/bin/ddcutil', [
         'setvcp',
         '10',
         '$target',
         '--display=$display',
-      ]);
+      ], display);
+    }
+  }
+
+  Future<void> _runProcess(
+    String executable,
+    List<String> arguments,
+    int display,
+  ) async {
+    setState(() => isLoading = true);
+
+    try {
+      final result = await Process.run(executable, arguments);
+      if (result.exitCode != 0) {
+        throw ProcessException(
+          executable,
+          arguments,
+          result.stderr,
+          result.exitCode,
+        );
+      }
       setState(() {
         output = 'Display $display: ${(result.stdout as String).trim()}';
       });
@@ -103,6 +159,14 @@ class _BrightnessHomeState extends State<BrightnessHome> {
     }
   }
 
+  Future<void> _refreshDisplays() {
+    if (Platform.isMacOS) {
+      return _detectMacDisplays();
+    } else {
+      return _detectDisplays();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -111,7 +175,7 @@ class _BrightnessHomeState extends State<BrightnessHome> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: _detectDisplays,
+            onPressed: _refreshDisplays,
           ),
         ],
       ),
@@ -146,7 +210,10 @@ class _BrightnessHomeState extends State<BrightnessHome> {
                           max: 1.0,
                           divisions: 20,
                           label: '${((brightness[d] ?? 0.5) * 100).toInt()}%',
-                          onChanged: (v) => _setBrightness(d, v),
+                          onChanged: (v) {
+                            setState(() => brightness[d] = v);
+                          },
+                          onChangeEnd: (v) => _setBrightness(d, v),
                         ),
                         Text(
                           'Brightness: ${((brightness[d] ?? 0.5) * 100).toInt()}%',
