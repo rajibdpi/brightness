@@ -14,75 +14,84 @@ A Flutter application for controlling monitor brightness on Linux systems using 
 - [License](#license)
 
 ## About
-This repository contains the "brightness" project. It mixes native C++ components (core logic), CMake build configuration, and higher-level platform/UI code (Dart/Flutter and Swift). Replace this section with a short overview of the project's purpose, goals, and notable features.
+This repository contains a Flutter-based monitor brightness controller for Linux systems. The application uses ddcutil to communicate with monitors via DDC/CI protocol, allowing users to adjust brightness levels through an intuitive graphical interface. The app automatically detects connected displays and provides individual brightness controls for each monitor.
 
 ## Language composition
-According to repository statistics, the languages used here are approximately:
-- C++: 45%
-- CMake: 35.9%
-- Dart: 10.7%
-- Swift: 3.3%
-- C: 2.6%
-- HTML: 2.2%
-- Other: 0.3%
+This is primarily a Flutter/Dart project with platform-specific code for multiple operating systems:
+- Dart: Core application logic and UI
+- C++: Platform-specific integrations (Linux, Windows)
+- CMake: Build configuration for native components
+- Swift: iOS platform support
+- HTML: Web platform support
 
-## Project structure (suggested)
-A high-level overview of typical directories you might have — adjust to match your repo:
-- `/src` or `/cpp` — C++ core implementation
-- `/cmake` or `CMakeLists.txt` — build configuration
-- `/flutter` or `/app` — Dart / Flutter UI app
-- `/ios` — Swift integration for iOS-specific code
-- `/web` — HTML or web UI (if present)
-- `/examples` — example usage or demo applications
-- `/docs` — project documentation
-
-(If your repo uses a different layout, replace this list with the actual structure.)
+## Project structure
+- `/lib` — Dart application code and main UI
+- `/android` — Android platform-specific code
+- `/ios` — iOS platform-specific code (Swift)
+- `/linux` — Linux platform-specific code
+- `/macos` — macOS platform-specific code
+- `/windows` — Windows platform-specific code
+- `/web` — Web platform support
+- `/test` — Flutter widget tests
+- `pubspec.yaml` — Flutter project configuration and dependencies
 
 ## Prerequisites
-Install the tools needed for each component you plan to build/run:
-- C++ toolchain (gcc/clang, make, or MSVC) and CMake (>= 3.15 recommended)
-- If there is a Flutter/Dart UI: Flutter SDK or Dart SDK
-- Xcode for building Swift / iOS targets (macOS only)
-- Any other dependencies listed in the project (list here if known)
+- Flutter SDK (3.9.2 or higher)
+- Dart SDK (included with Flutter)
+- For Linux: `ddcutil` package installed (`sudo apt install ddcutil` on Ubuntu/Debian)
+- Platform-specific tools:
+  - Android: Android Studio and Android SDK
+  - iOS/macOS: Xcode (macOS only)
+  - Linux: Standard Linux development tools
+  - Windows: Visual Studio with C++ support
 
 ## Build & Run
 
-### Build C++ core (CMake)
-From the repository root:
+### Flutter Application
+1. Install dependencies:
 ```bash
-mkdir -p build
-cd build
-cmake ..
-cmake --build . --config Release
-```
-Adjust generator and config for your platform (e.g., -G "Visual Studio 16 2019" on Windows).
-
-### Dart / Flutter
-If a Flutter app is present:
-```bash
-cd path/to/flutter_app
 flutter pub get
+```
+
+2. Run on connected device or emulator:
+```bash
 flutter run
 ```
 
-### iOS / Swift
-Open the Xcode workspace/project and build for a target device or simulator:
-```text
-open ios/Runner.xcworkspace
-# then build/run inside Xcode
+3. Build for specific platforms:
+```bash
+# Linux
+flutter build linux
+
+# Android
+flutter build apk
+
+# iOS (macOS only)
+flutter build ios
+
+# Web
+flutter build web
 ```
 
-Add any additional platform-specific build steps here (Android, web, etc.).
+### Linux Requirements
+For the brightness control to work on Linux, ensure `ddcutil` is installed and you have proper permissions:
+```bash
+# Install ddcutil
+sudo apt install ddcutil
+
+# Add user to i2c group for device access
+sudo usermod -aG i2c $USER
+# Log out and back in for changes to take effect
+```
 
 ## Usage
-Describe how to use the built artifacts, run the app, command-line options, configuration files, environment variables, or example commands. For example:
-```bash
-# run the CLI tool if present
-./build/brightness --help
+Once the application is running:
+1. The app will automatically detect connected monitors using ddcutil
+2. Each detected display will be shown with its own brightness slider
+3. Adjust the sliders to change brightness levels (0-100%)
+4. Use the refresh button in the app bar to re-detect displays
 
-# run the demo app
-flutter run -d <device-id>
-```
+**Note:** This application is primarily designed for Linux systems with DDC/CI-compatible monitors. The ddcutil tool must be installed and properly configured for the brightness control to work.
 
 ## Contributing
 Contributions are welcome. A suggested minimal contributing section:
@@ -99,12 +108,3 @@ If you need help, open an issue or contact the maintainers.
 
 ## License
 If this repository has a license, state it here (e.g., MIT, Apache-2.0). If no license is set, the default is "All rights reserved" — add a LICENSE file to make terms explicit.
-
----
-
-If you'd like, I can:
-- Commit this README directly to the repository (specify branch, default: `main`)
-- Customize the sections with exact build commands or examples if you paste them here
-- Add badges (build, license, coverage) — tell me which services you use
-
-Which would you like me to do next?
