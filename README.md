@@ -1,7 +1,6 @@
 # brightness
 
-Short description
-A concise description of what this repository does (replace this with a one-line summary).
+A Flutter application for controlling monitor brightness on Linux systems using ddcutil. Provides a graphical interface to adjust brightness levels for multiple connected displays.
 
 ## Table of contents
 - [About](#about)
