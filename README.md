@@ -105,6 +105,17 @@ flutter build linux --release
 # then run the bundle as above:
 ./build/linux/x64/release/bundle/brightness
 ```
+### Troubleshooting tips
+
+```bash
+Permission denied: run chmod +x build/linux/x64/release/bundle/brightness.
+Missing GTK or other system libs: install runtime deps, e.g.
+sudo apt-get install libgtk-3-0 libasound2 (package names may vary by distro).
+If you get errors about missing .so files, use the LD_LIBRARY_PATH command above or install the .so files system-wide (not recommended).
+To see stdout/stderr logs, run the binary from a terminal (as above); you can also redirect output to a file:
+./brightness 2>&1 | tee ~/brightness.log
+```
+
 
 ## Contributing
 Contributions are welcome. A suggested minimal contributing section:
