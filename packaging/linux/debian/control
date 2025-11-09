@@ -1,0 +1,9 @@
+Package: brightness
+Version: 1.0.0
+Section: utils
+Priority: optional
+Architecture: amd64
+Maintainer: Rajib <rajib@example.com>
+Depends: libgtk-3-0 (>= 3.22)
+Description: brightness - Flutter desktop application
+ A Flutter desktop app packaged as a .deb.

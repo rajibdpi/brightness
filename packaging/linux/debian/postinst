@@ -1,0 +1,10 @@
+#!/bin/bash
+set -e
+# post install: create desktop entry and mime or other setup if needed
+if [ -n "$DEB_USER" ]; then
+  USER_HOME=$(getent passwd "$DEB_USER" | cut -d: -f6)
+else
+  USER_HOME=$(eval echo ~${SUDO_USER:-$USER})
+fi
+# no-op for now
+exit 0
