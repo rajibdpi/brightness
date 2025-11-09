@@ -83,6 +83,28 @@ Describe how to use the built artifacts, run the app, command-line options, conf
 # run the demo app
 flutter run -d <device-id>
 ```
+#### install (may prompt for dependencies)
+```bash
+cd /home/rajib/brightness/build/linux/x64/release/bundle
+# make sure it's executable
+chmod +x ./brightness
+./brightness
+# install (may prompt for dependencies)
+sudo dpkg -i packaging/linux/output/brightness_1.0.0_amd64.deb
+# if dpkg reports missing deps:
+sudo apt-get install -f
+
+# run from shell or from app launcher
+brightness
+# or run the installed binary directly
+/opt/brightness/brightness
+
+```
+```bash
+flutter build linux --release
+# then run the bundle as above:
+./build/linux/x64/release/bundle/brightness
+```
 
 ## Contributing
 Contributions are welcome. A suggested minimal contributing section:
